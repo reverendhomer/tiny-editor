@@ -413,7 +413,7 @@ write_buffer(Buffer b, char *filename){
   Node *nd;
   FILE *f = fopen(filename, "w");
   if(!f)
-    die("write_buffer(): can't open file '%s' for reading.\n", filename);
+    die("write_buffer(): can't open file '%s' for writing: %m\n", filename);
   if(!really("Save file? [y/n]")) {
     fclose(f);
     return;
