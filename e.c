@@ -14,6 +14,10 @@
 #define BS 0x08 /*backspace*/
 #define DEL 0x7f /*delete*/
 #define ESC 0x1B /*escape*/
+#define UP 0x41 /*up*/
+#define DWN 0x42 /*down*/
+#define RGT 0x43 /*right*/
+#define LFT 0x44 /*left*/
 
 typedef struct Node Node;
 typedef struct List List;
@@ -864,10 +868,10 @@ command_ed(char c){
 
 bool
 command_move(char c){
-  if(c=='h') move_prevch();
-  else if(c=='l') move_nextch();
-  else if(c=='j') move_nextln();
-  else if(c=='k') move_prevln();
+  if(c=='h'||c==LFT) move_prevch();
+  else if(c=='l'||c==RGT) move_nextch();
+  else if(c=='j'||c==DWN) move_nextln();
+  else if(c=='k'||c==UP) move_prevln();
   else if(c=='H') move_bol();
   else if(c=='L') move_eol();
   else if(c=='d') move_halfscreendown();
