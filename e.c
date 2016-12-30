@@ -575,8 +575,8 @@ find_prev_char_offset(Pos p){
 
 void
 move_prevch(){
-  char *s;
   if(win->cursor.x == 0){
+    char *s;
     move_prevln();
     s = id2str(win->lines, win->cursor.y);
     win->cursor.x = strlen(s)-1;
@@ -691,8 +691,8 @@ correct_scr(){
 int
 get_offset(char *s, char *search_template){
   int o; /* offset */
-  char *p, *p2;
   for(o=0; s[o]; o++) {
+    char *p, *p2;
     p = &s[o];
     p2 = search_template;
     while(*p2 && *p2==*p) {
@@ -901,8 +901,8 @@ command(char c){
 
 void
 mainloop(){
-  char c;
   while(is_running){
+    char c;
     c = (char)getch();
     sprintf(statusline, "key '%i'", (int)c);
     command(c);
