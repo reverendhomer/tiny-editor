@@ -466,7 +466,7 @@ void
 draw_statusline(){
   char s[120];
   sprintf(s, "(c-%i-%i-%i  m-%i-%i-%i  u-%i/%i)  %s",
-      win->cursor.y, win->cursor.x, find_screen_x(win->cursor),
+      win->cursor.y+1, win->cursor.x, find_screen_x(win->cursor),
       win->marker.y, win->marker.x, find_screen_x(win->marker),
       win->undo.size,
       win->redo.size,
