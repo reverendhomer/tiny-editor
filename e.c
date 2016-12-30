@@ -99,16 +99,6 @@ extruct_data (List *list, Node *old){
 }
 
 void
-add_node_to_head(List *list, void *data){
-  insert_node(list, data, NULL);
-}
-
-void
-add_mode_after(List *list, void *data, Node *after){
-  insert_node(list, data, after);
-}
-
-void
 add_node_to_tail(List *list, void *data){
   insert_node(list, data, list->tail);
 }
@@ -840,17 +830,6 @@ insert(char exitchar){
     }
     draw();
   }
-}
-
-void
-show_buffer(Buffer b){
-  Node *node;
-  clear();
-  move(0, 0);
-  FOR_EACH_NODE(b, node)
-    printw(node->data);
-  getch();
-  clear();
 }
 
 bool
