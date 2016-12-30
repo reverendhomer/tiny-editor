@@ -809,10 +809,10 @@ insert_empty_line(){
 void
 next_win(){
   Node *node = windows.head;
-  while(node->data != win && node){
+  while(node && node->data != win){
     node = node->next;
   }
-  if(node->next)
+  if(node && node->next)
     win = node->next->data;
   else
     win = windows.head->data;
