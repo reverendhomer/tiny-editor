@@ -887,7 +887,7 @@ void
 command(char c){
   if(c=='q') quit();
   else if(command_move(c)) {}
-  else if(c=='F') get_search_template();
+  else if(c=='F'||c=='/') get_search_template();
   else if(c=='f') findnext();
   else if(c=='w') write_buffer(win->lines, win->filename);
   else if(c=='W') write_buffer_as(win->lines);
