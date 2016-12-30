@@ -408,10 +408,12 @@ void
 write_buffer(Buffer b, char *filename){
   Node *nd;
   FILE *f = fopen(filename, "w");
-  if(!really("Save file? [y/n]"))
-    return;
   if(!f)
     die("write_buffer(): can't open file '%s' for reading.\n", filename);
+  if(!really("Save file? [y/n]")) {
+    fclose(f);
+    return;
+  }
   FOR_EACH_NODE(b, nd){
     char *s = nd->data;
     fputs(s, f);
