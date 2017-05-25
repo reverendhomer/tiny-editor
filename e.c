@@ -42,20 +42,19 @@ struct List {
   If <after>==NULL, then <new> will be added at the head
   of the list, else it will be added following <after>.
   Only pointer to data is stored, no copying! */
-void
-insert_node (List *list, void *data, Node *after){
+void insert_node (List *list, void *data, Node *after) {
   Node *new = malloc(sizeof(Node));
   new->data = data;
-  if(after){
+  if (after) {
     new->next = after->next;
     new->prev = after;
     after->next = new;
-  }else{
+  } else {
     new->next = list->head;
     new->prev = after;
     list->head = new;
   }
-  if(new->next)
+  if (new->next)
     new->next->prev = new;
   else
     list->tail = new;
@@ -64,25 +63,23 @@ insert_node (List *list, void *data, Node *after){
 
 /* Extructs node from list, returns pointer to this node.
   No memory is freed */
-Node *
-extruct_node (List *list, Node *nd){
-  if(!nd)
-    return(NULL);
-  if(nd->next)
+Node *extruct_node (List *list, Node *nd) {
+  if (!nd)
+    return NULL;
+  if (nd->next)
     nd->next->prev = nd->prev;
   else
     list->tail = nd->prev;
-  if(nd->prev)
+  if (nd->prev)
     nd->prev->next = nd->next;
   else
     list->head = nd->next;
   list->size--;
-  return(nd);
+  return nd;
 }
 
 /* Delete data and node. */
-void
-delete_node (List *list, Node *nd){
+void delete_node (List *list, Node *nd) {
   Node *tmp = extruct_node(list, nd);
   free(tmp->data);
   free(tmp);
@@ -90,16 +87,14 @@ delete_node (List *list, Node *nd){
 
 /* Extruct node from list, delete node,
   return pointer to data. */
-void *
-extruct_data (List *list, Node *old){
+void *extruct_data (List *list, Node *old) {
   Node *node = extruct_node(list, old);
   void *data = node->data;
   free(node);
-  return(data);
+  return data;
 }
 
-void
-add_node_to_tail(List *list, void *data){
+void add_node_to_tail(List *list, void *data) {
   insert_node(list, data, list->tail);
 }
 
@@ -138,8 +133,7 @@ char statusline[200] = "ozkriff's ed";
 List windows = {NULL, NULL, 0};
 Win *win = NULL;
 
-void
-die(const char *errstr, ...){
+void die(const char *errstr, ...) {
   va_list ap;
   endwin();
   va_start(ap, errstr);
@@ -148,113 +142,101 @@ die(const char *errstr, ...){
   exit(EXIT_FAILURE);
 }
 
-bool
-is_ascii(char c){
+bool is_ascii(char c) {
   unsigned char uc = c;
-  return(uc < 0x80);
+  return uc < 0x80;
 }
 
-bool
-is_fill(char c){
+bool is_fill(char c) {
   unsigned char uc = c;
-  return(!is_ascii(c) && uc <= 0xBF);
+  return !is_ascii(c) && uc <= 0xBF;
 }
 
-int
-utf8len(char ch){
+int utf8len(char ch) {
   unsigned char uc = (unsigned char)ch;
   if(uc >= 0xFC)
-    return(6);
+    return 6;
   else if(uc >= 0xF8)
-    return(5);
+    return 5;
   else if(uc >= 0xF0)
-    return(4);
+    return 4;
   else if(uc >= 0xE0)
-    return(3);
+    return 3;
   else if(uc >= 0xC0)
-    return(2);
+    return 2;
   else
-    return(1);
+    return 1;
 }
 
-char *
-my_strdup(const char *s){
+char *my_strdup(const char *s) {
   char *d = calloc(strlen(s)+1, sizeof(char));
   if(d != NULL)
     strcpy(d, s);
-  return(d);
+  return d;
 }
  
-Node *
-id2node(Buffer b, int line){
+Node *id2node(Buffer b, int line) {
   Node *nd = b.head;
   int i = 0;
-  FOR_EACH_NODE(b, nd){
+  FOR_EACH_NODE(b, nd) {
     if(i == line)
-      return(nd);
+      return nd;
     i++;
   }
-  return(NULL);
+  return NULL;
 }
 
-char *
-id2str(Buffer b, int line){
+char *id2str(Buffer b, int line) {
   char *s = id2node(b, line)->data;
-  return(s);
+  return s;
 }
 
-Buffer
-copy(Buffer original, int from, int to){
+Buffer copy(Buffer original, int from, int to) {
   Buffer b = {NULL, NULL, 0};
   Node *n = id2node(original, from);
-  while(from <= to && n){
+  while(from <= to && n) {
     char *s = n->data;
     add_node_to_tail(&b, my_strdup(s));
     n = n->next;
     from++;
   }
-  return(b);
+  return b;
 }
 
-void
-paste(Buffer *to, Buffer from, int fromline){
+void paste(Buffer *to, Buffer from, int fromline) {
   Node *n = id2node(*to, fromline);
   int i = fromline;
-  FOR_EACH_NODE(from, n){
+  FOR_EACH_NODE(from, n) {
     char *s = n->data;
     insert_node(to, my_strdup(s), id2node(*to, i));
     i++;
   }
 }
 
-void
-removelines(Buffer *b, int from, int count){
-  while(count > 0){
+void removelines(Buffer *b, int from, int count) {
+  while(count > 0) {
     delete_node(b, id2node(*b, from));
     count--;
   }
 }
 
-Buffer
-clone_buffer(Buffer buffer){
+Buffer clone_buffer(Buffer buffer) {
   Buffer newlist = {NULL, NULL, 0};
   Node *n;
-  FOR_EACH_NODE(buffer, n){
+  FOR_EACH_NODE(buffer, n) {
     char *s = n->data;
     add_node_to_tail(&newlist, my_strdup(s));
   }
-  return(newlist);
+  return newlist;
 }
 
-void
-clear_buffer(Buffer *buffer){
+void clear_buffer(Buffer *buffer) {
   while(buffer->size > 0)
     delete_node(buffer, buffer->head);
 }
 
-void
-clean_stack(List *stack){
-  while(stack->size > 0){
+void clean_stack(List *stack) {
+  while (stack->size > 0) {
     Diff *d = stack->tail->data;
     clear_buffer(&d->from_original);
     clear_buffer(&d->from_original);
@@ -262,76 +244,69 @@ clean_stack(List *stack){
   }
 }
 
-int
-find_first_changed_line(Buffer changed, Buffer original){
+int find_first_changed_line(Buffer changed, Buffer original) {
   int id = 0;
   Node *n1 = changed.head;
   Node *n2 = original.head;
-  while(n1 && n2){
+  while (n1 && n2) {
     if(strcmp(n1->data, n2->data) != 0)
-      return(id);
+      return id;
     n1 = n1->next;
     n2 = n2->next;
     id++;
   }
-  return(changed.size - 1);
+  return changed.size - 1;
 }
 
-int
-find_last_changed_line(Buffer changed, Buffer original){
+int find_last_changed_line(Buffer changed, Buffer original) {
   int id = original.size - 1;
   Node *n1 = changed.tail;
   Node *n2 = original.tail;
-  while(n1 && n2){
-    if(strcmp(n1->data, n2->data) != 0)
-      return(id);
+  while (n1 && n2) {
+    if (strcmp(n1->data, n2->data) != 0)
+      return id;
     n1 = n1->prev;
     n2 = n2->prev;
     id--;
   }
-  return(0);
+  return 0;
 }
 
-int
-find_last_new_line(Buffer changed, Buffer original){
+int find_last_new_line(Buffer changed, Buffer original) {
   int id = changed.size - 1;
   Node *n1 = changed.tail;
   Node *n2 = original.tail;
-  while(n1 && n2){
-    if(strcmp(n1->data, n2->data) != 0)
-      return(id);
+  while (n1 && n2) {
+    if (strcmp(n1->data, n2->data) != 0)
+      return id;
     n1 = n1->prev;
     n2 = n2->prev;
     id--;
   }
-  return(0);
+  return 0;
 }
 
-Diff
-create_diff(Buffer changed, Buffer original){
+Diff create_diff(Buffer changed, Buffer original) {
   Diff d;
   d.first = find_first_changed_line(changed, original);
   d.last_in_original = find_last_changed_line(changed, original);
   d.last_in_changed = find_last_new_line(changed, original);
   d.from_original = copy(original, d.first, d.last_in_original);
   d.from_changed = copy(changed, d.first, d.last_in_changed);
-  return(d);
+  return d;
 }
 
-void
-undo_diff(Buffer *buffer, Diff d){
+void undo_diff(Buffer *buffer, Diff d) {
   removelines(buffer, d.first, d.from_changed.size);
   paste(buffer, d.from_original, d.first - 1);
 }
 
-void
-redo_diff(Buffer *buffer, Diff d){
+void redo_diff(Buffer *buffer, Diff d) {
   removelines(buffer, d.first, d.from_original.size);
   paste(buffer, d.from_changed, d.first - 1);
 }
 
-void
-add_undo_copy(){
+void add_undo_copy(void) {
   Diff *d = calloc(1, sizeof(Diff));
   *d = create_diff(win->lines, win->prevlines);
   add_node_to_tail(&win->undo, d);
@@ -339,17 +314,15 @@ add_undo_copy(){
   clean_stack(&win->redo);
 }
 
-void
-move_last_diff(Diff_stack *st1, Diff_stack *st2){
-  if(st1->size > 0){
+void move_last_diff(Diff_stack *st1, Diff_stack *st2) {
+  if (st1->size > 0) {
     Diff *d = extruct_data(st1, st1->tail);
     add_node_to_tail(st2, d);
   }
 }
 
-void
-undo(){
-  if(win->undo.size > 0){
+void undo(void) {
+  if (win->undo.size > 0) {
     Diff *d = win->undo.tail->data;
     undo_diff(&win->lines, *d);
     undo_diff(&win->prevlines, *d);
@@ -357,9 +330,8 @@ undo(){
   }
 }
 
-void
-redo(){
-  if(win->redo.size > 0){
+void redo() {
+  if (win->redo.size > 0) {
     Diff *d = win->redo.tail->data;
     redo_diff(&win->lines, *d);
     redo_diff(&win->prevlines, *d);
@@ -367,27 +339,24 @@ redo(){
   }
 }
 
-bool
-readfile(Buffer *b, char *filename){
+bool readfile(Buffer *b, char *filename) {
   FILE *f = fopen(filename, "r");
   char s[300];
   if(f == NULL)
-    return(false);
-  while(fgets(s, 300, f))
+    return false;
+  while (fgets(s, 300, f))
     add_node_to_tail(b, my_strdup(s));
   fclose(f);
   sprintf(statusline, "opened '%s'", filename);
-  return(true);
+  return true;
 }
 
-void
-clear_statusline(){
+void clear_statusline(void) {
   move(screen_size.y, 0);
   clrtoeol();
 }
 
-bool
-really(char *message){
+bool really(char *message) {
   char c;
   clear_statusline();
   echo();
@@ -395,20 +364,19 @@ really(char *message){
   printw(message);
   c = getch();
   noecho();
-  return(c == 'y');
+  return c == 'y';
 }
 
-void
-write_buffer(Buffer b, char *filename){
+void write_buffer(Buffer b, char *filename) {
   Node *nd;
   FILE *f = fopen(filename, "w");
-  if(!f)
+  if (!f)
     die("write_buffer(): can't open file '%s' for writing: %m\n", filename);
-  if(!really("Save file? [y/n]")) {
+  if (!really("Save file? [y/n]")) {
     fclose(f);
     return;
   }
-  FOR_EACH_NODE(b, nd){
+  FOR_EACH_NODE(b, nd) {
     char *s = nd->data;
     fputs(s, f);
   }
@@ -416,18 +384,16 @@ write_buffer(Buffer b, char *filename){
   sprintf(statusline, "written %s", filename);
 }
 
-void
-drawline(char *s){
+void drawline(char *s) {
   int len = strlen(s);
   addnstr(s, screen_size.x-1);
-  if(len > screen_size.x-1)
+  if (len > screen_size.x-1)
     addch('\n');
 }
 
-void
-drawlines(Buffer b, int from, int count){
+void drawlines(Buffer b, int from, int count) {
   Node *nd = id2node(b, from);
-  while(nd && count > 0){
+  while (nd && count > 0) {
     char *s = nd->data;
     drawline(s);
     nd = nd->next;
@@ -435,25 +401,20 @@ drawlines(Buffer b, int from, int count){
   }
 }
 
-int
-find_screen_x(Pos p){
+int find_screen_x(Pos p) {
   /*offset in screen positions*/
   int screen_x = 0;
   /*offset in bytes*/
   int o = 0;
   char *s = id2str(win->lines, p.y);
-  while(o < p.x){
-    if(s[o] == '\t')
-      screen_x += TABSIZE;
-    else
-      screen_x += 1;
+  while (o < p.x) {
+    screen_x += s[o] == '\t' ? TABSIZE : 1;
     o += utf8len(s[o]);
   }
-  return(screen_x);
+  return screen_x;
 }
 
-void
-draw_statusline(){
+void draw_statusline(void) {
   char s[120];
   sprintf(s, "(c-%i-%i-%i  m-%i-%i-%i  u-%i/%i)  %s",
       win->cursor.y+1, win->cursor.x, find_screen_x(win->cursor),
@@ -466,8 +427,7 @@ draw_statusline(){
   printw(s);
 }
 
-void
-draw(){
+void draw(void) {
   move(0, 0);
   drawlines(win->lines, win->screen_pos.y, screen_size.y);
   draw_statusline();
@@ -475,8 +435,7 @@ draw(){
   refresh();
 }
 
-void
-insert_text_into_line(char *s, int len, Pos p){
+void insert_text_into_line(char *s, int len, Pos p) {
   char *old_s = id2str(win->lines, p.y);
   char *new_s = calloc(strlen(old_s) + 1 + len, sizeof(char));
   strncpy(new_s, old_s, p.x);
@@ -486,17 +445,15 @@ insert_text_into_line(char *s, int len, Pos p){
   id2node(win->lines, p.y)->data = new_s;
 }
 
-void
-get_utf8char(char c[6], int *len){
+void get_utf8char(char c[6], int *len) {
   int i;
   c[0] = getch();
-  (*len) = utf8len(c[0]);
-  for(i = 1; i < (*len); i++)
+  *len = utf8len(c[0]);
+  for(i = 1; i < *len; i++)
     c[i] = getch();
 }
 
-void
-move_nextln(){
+void move_nextln(void) {
   char *s;
   int n;
   if(win->cursor.y == (win->lines.size-1))
@@ -508,75 +465,66 @@ move_nextln(){
     win->cursor.x = n;
 }
 
-void
-newstr(char *data){
+void newstr(char *data) {
   insert_node(&win->lines, my_strdup(data), id2node(win->lines, win->cursor.y));
   move_nextln();
   win->cursor.x = 0;
 }
 
-void
-insert_char(char c[6], int len, Pos p){
-  if(c[0] == '\n'){
+void insert_char(char c[6], int len, Pos p) {
+  if (c[0] == '\n') {
     char *s = id2str(win->lines, p.y);
     int old_x = p.x;
     newstr(s + p.x);
     s[old_x] = '\n';
     s[old_x + 1] = '\0';
-  }else{
+  } else
     insert_text_into_line(c, len, p);
-  }
 }
 
-void
-move_prevln(){
+void move_prevln(void) {
   char *s;
   int n;
-  if(win->cursor.y == 0)
+  if (win->cursor.y == 0)
     return;
   win->cursor.y--;
   s = id2str(win->lines, win->cursor.y);
   n = strlen(s)-1;
-  if(win->cursor.x > n)
+  if (win->cursor.x > n)
     win->cursor.x = n;
 }
 
-void
-move_nextch(){
+void move_nextch(void) {
   char *s = id2str(win->lines, win->cursor.y);
   win->cursor.x += utf8len(s[win->cursor.x]);
-  if(s[win->cursor.x] == '\0'){
+  if (s[win->cursor.x] == '\0') {
     move_nextln();
     win->cursor.x = 0;
   }
 }
 
-int
-find_prev_char_offset(Pos p){
+int find_prev_char_offset(Pos p) {
   unsigned char c;
   char *s = id2str(win->lines, p.y);
   int of = p.x; /*offset in bytes*/
-  do{
+  do {
     of--;
     c = s[of];
-  } while(of >= 0 && is_fill(c));
-  return(of);
+  } while (of >= 0 && is_fill(c));
+  return of;
 }
 
-void
-move_prevch(){
-  if(win->cursor.x == 0){
+void move_prevch(void) {
+  if (win->cursor.x == 0) {
     char *s;
     move_prevln();
     s = id2str(win->lines, win->cursor.y);
     win->cursor.x = strlen(s)-1;
-  }else{
+  } else
     win->cursor.x = find_prev_char_offset(win->cursor);
-  }
 }
 
-void
-join(Buffer *b, Pos p){
+void join(Buffer *b, Pos p) {
   char *s_orig = id2str(*b, p.y);
   char *s_next = id2str(*b, p.y + 1);
   int len_orig = strlen(s_orig) + 1;
@@ -589,18 +537,16 @@ join(Buffer *b, Pos p){
   free(s_orig);
 }
 
-void
-removechar(){
+void removechar(void) {
   char *s = id2str(win->lines, win->cursor.y);
-  if(s[win->cursor.x] == '\n'){
+  if (s[win->cursor.x] == '\n') {
     join(&win->lines, win->cursor);
     clear();
-  }else
+  } else
     strcpy(s + win->cursor.x, s + win->cursor.x + utf8len(s[win->cursor.x]));
 }
 
-void
-remove_part_of_line(Buffer *b, int line, int from, int to){
+void remove_part_of_line(Buffer *b, int line, int from, int to) {
   char *s = id2str(*b, line);
   char *dest = s + from;
   char *src = s + from + to - 1;
@@ -608,20 +554,18 @@ remove_part_of_line(Buffer *b, int line, int from, int to){
   memmove(dest, src, n);
 }
 
-void
-remove_end_of_line(Buffer *b, int line, int from){
+void remove_end_of_line(Buffer *b, int line, int from) {
   char *s = id2str(*b, line);
   s[from] = '\n';
   s[from+1] = '\0';
 }
 
-void
-remove_text(Buffer *b, Pos from, Pos to){
-  if(from.y > to.y){
+void remove_text(Buffer *b, Pos from, Pos to) {
+  if (from.y > to.y)
     sprintf(statusline, "bad interval");
-  }else if(from.y == to.y){
+  else if (from.y == to.y)
     remove_part_of_line(b, from.y, from.x, to.x);
-  }else if(from.y < to.y){
+  else {
     remove_end_of_line(b, from.y, from.x);
     remove_part_of_line(b, to.y, 0, to.x + 1);
     removelines(b, from.y + 1, to.y - from.y - 1);
@@ -630,8 +574,7 @@ remove_text(Buffer *b, Pos from, Pos to){
   }
 }
 
-void
-replace_char(){
+void replace_char(void) {
   char c[6];
   int len; /*character size in bytes*/
   removechar();
@@ -639,72 +582,66 @@ replace_char(){
   insert_char(c, len, win->cursor);
 }
 
-void
-move_halfscreenup(){
+void move_halfscreenup(void) {
   int i;
-  for(i=0; i<screen_size.y/2; i++)
+  for (i = 0; i < screen_size.y / 2; i++)
     move_prevln();
 }
 
-void
-move_halfscreendown(){
+void move_halfscreendown(void) {
   int i;
-  for(i=0; i<screen_size.y/2; i++)
+  for(i = 0; i < screen_size.y / 2; i++)
     move_nextln();
 }
 
-void
-move_toline(){
+void move_toline(void) {
   int n;
   move(screen_size.y, 0);
   printw("enter line number: ");
   echo();
   scanw("%i", &n);
   noecho();
-  if(n < 0 || n > win->lines.size - 1){
+  if (n < 0 || n > win->lines.size - 1)
     sprintf(statusline, "bad line number");
-  }else{
+  else {
     sprintf(statusline, "moved to %i line", n);
     win->cursor.y = n;
   }
 }
 
-void
-correct_scr(){
-  while(win->cursor.y < win->screen_pos.y)
+void correct_scr(void) {
+  while (win->cursor.y < win->screen_pos.y)
     win->screen_pos.y--;
-  while(win->cursor.y >= win->screen_pos.y + screen_size.y)
+  while (win->cursor.y >= win->screen_pos.y + screen_size.y)
     win->screen_pos.y++;
 }
 
 /* get offset of substring */
-int
-get_offset(char *s, char *search_template){
+int get_offset(char *s, char *search_template) {
   int o; /* offset */
-  for(o=0; s[o]; o++) {
+  for (o = 0; s[o]; o++) {
     char *p, *p2;
     p = &s[o];
     p2 = search_template;
-    while(*p2 && *p2==*p) {
+    while (*p2 && *p2==*p) {
       p++;
       p2++;
     }
     if(!*p2)
-      return(o);
+      return o;
   }
-  return(-1);
+  return -1;
 }
 
-void
-findnext(){
+void findnext(void) {
   Node *nd;
   int y = win->cursor.y + 1;
-  if(y >= win->lines.size)
+  if (y >= win->lines.size)
     y = 0;
   nd = id2node(win->lines, y);
-  while(nd && y < win->lines.size){
+  while (nd && y < win->lines.size) {
     char *s = nd->data;
-    if(strstr(s, search_template)){
+    if (strstr(s, search_template)) {
       win->cursor.y = y;
       win->cursor.x = get_offset(s, search_template);
       return;
@@ -714,8 +651,7 @@ findnext(){
   }
 }
 
-void
-get_search_template(){
+void get_search_template(void) {
   move(screen_size.y, 0);
   echo();
   printw("enter template: ");
@@ -724,8 +660,7 @@ get_search_template(){
   findnext();
 }
 
-void
-write_buffer_as(Buffer b){
+void write_buffer_as(Buffer b) {
   char newfname[100]; /* new file name */
   echo();
   move(screen_size.y, 0);
@@ -735,152 +670,123 @@ write_buffer_as(Buffer b){
   write_buffer(b, newfname);
 }
 
-void
-setmark(){
-  win->marker = win->cursor;
-}
+void setmark(void) { win->marker = win->cursor; }
 
-void
-correct_x(){
+void correct_x(void) {
   int len = strlen(id2str(win->lines, win->cursor.y));
-  if(win->cursor.x >= len)
+  if (win->cursor.x >= len)
     win->cursor.x = len;
-  if(win->cursor.x < 0)
+  if (win->cursor.x < 0)
     win->cursor.x = 0;
 }
 
-void
-quit(){
-  if(really("quit? (y/n)"))
+void quit(void) {
+  if (really("quit? (y/n)"))
     is_running = false;
 }
 
 /*Move cursor to beginig of line*/
-void
-move_bol(){
-  win->cursor.x = 0;
-}
+void move_bol(void) { win->cursor.x = 0; }
 
 /*Move cursor to ending of buffer*/
-void
-move_eol(){
-  win->cursor.x = strlen(id2str(win->lines, win->cursor.y))-1;
-}
+void move_eol(void) { win->cursor.x = strlen(id2str(win->lines, win->cursor.y))-1; }
 
 /*Move cursor to beginig of buffer*/
-void
-move_bob(){
-  win->cursor.y = 0;
-}
+void move_bob(void){ win->cursor.y = 0; }
 
 /*Move cursor to ending of buffer*/
-void
-move_eob(){
-  win->cursor.y = win->lines.size-1;
-}
+void move_eob(void) { win->cursor.y = win->lines.size-1; }
 
-void
-copy_to_clipboard(){
+void copy_to_clipboard(void) {
   clear_buffer(&clipboard);
   clipboard = copy(win->lines, win->marker.y, win->cursor.y);
 }
 
-void
-removeselected(){
+void removeselected(void) {
   remove_text(&win->lines, win->marker, win->cursor);
   win->cursor = win->marker;
 }
 
-void
-insert_empty_line(){
-  newstr("\n");
-}
+void insert_empty_line(void) { newstr("\n"); }
 
-void
-next_win(){
+void next_win(void) {
   Node *node = windows.head;
-  while(node && node->data != win){
+  while (node && node->data != win)
     node = node->next;
-  }
-  if(node && node->next)
+  if (node && node->next)
     win = node->next->data;
   else
     win = windows.head->data;
   clear();
 }
 
-void
-insert(char exitchar){
+void insert(char exitchar) {
   char c[6];
   int len;
   sprintf(statusline, "insert mode. ESC - return to normal mode");
   draw();
-  while(1){
+  while (1) {
     get_utf8char(c, &len);
-    if(c[0] == exitchar){
+    if (c[0] == exitchar) {
       sprintf(statusline, "normal mode");
       return;
-    }else if(c[0] == BS || c[0] == DEL){
+    } else if (c[0] == BS || c[0] == DEL) {
       move_prevch();
       removechar();
-    }else{
+    } else {
       insert_char(c, len, win->cursor);
-      if(c[0] != '\n')
+      if (c[0] != '\n')
         win->cursor.x += len;
     }
     draw();
   }
 }
 
-bool
-command_ed(char c){
-  if(c=='o') insert_empty_line();
-  else if(c=='i') insert(ESC);
-  else if(c=='r') replace_char();
-  else if(c=='x') removechar();
-  else if(c=='X') removeselected();
-  else if(c=='p') paste(&win->lines, clipboard, win->cursor.y);
-  else return(false);
+bool command_ed(char c) {
+  if (c == 'o') insert_empty_line();
+  else if (c == 'i') insert(ESC);
+  else if (c == 'r') replace_char();
+  else if (c == 'x') removechar();
+  else if (c == 'X') removeselected();
+  else if (c == 'p') paste(&win->lines, clipboard, win->cursor.y);
+  else return false;
   add_undo_copy();
-  return(true);
+  return true;
 }
 
-bool
-command_move(char c){
-  if(c=='h'||c==LFT) move_prevch();
-  else if(c=='l'||c==RGT) move_nextch();
-  else if(c=='j'||c==DWN) move_nextln();
-  else if(c=='k'||c==UP) move_prevln();
-  else if(c=='H') move_bol();
-  else if(c=='L') move_eol();
-  else if(c=='d') move_halfscreendown();
-  else if(c=='u') move_halfscreenup();
-  else if(c=='D') move_eob();
-  else if(c=='U') move_bob();
-  else if(c=='g') move_toline();
-  else return(false);
-  return(true);
+bool command_move(char c) {
+  if (c == 'h' || c == LFT) move_prevch();
+  else if (c == 'l' || c == RGT) move_nextch();
+  else if (c == 'j' || c == DWN) move_nextln();
+  else if (c == 'k' || c == UP) move_prevln();
+  else if (c == 'H') move_bol();
+  else if (c == 'L') move_eol();
+  else if (c == 'd') move_halfscreendown();
+  else if (c == 'u') move_halfscreenup();
+  else if (c == 'D') move_eob();
+  else if (c == 'U') move_bob();
+  else if (c == 'g') move_toline();
+  else return false;
+  return true;
 }
 
-void
-command(char c){
-  if(c=='q') quit();
-  else if(command_move(c)) {}
-  else if(c=='F'||c=='/') get_search_template();
-  else if(c=='f') findnext();
-  else if(c=='w') write_buffer(win->lines, win->filename);
-  else if(c=='W') write_buffer_as(win->lines);
-  else if(c=='m') setmark();
-  else if(c=='c') copy_to_clipboard();
-  else if(command_ed(c)) {}
-  else if(c=='[') undo();
-  else if(c==']') redo();
-  else if(c=='n') next_win();
+void command(char c) {
+  if (c == 'q') quit();
+  else if (command_move(c)) {}
+  else if (c == 'F' || c == '/')  get_search_template();
+  else if (c == 'f') findnext();
+  else if (c == 'w') write_buffer(win->lines, win->filename);
+  else if (c == 'W') write_buffer_as(win->lines);
+  else if (c == 'm') setmark();
+  else if (c == 'c') copy_to_clipboard();
+  else if (command_ed(c)) {}
+  else if (c == '[') undo();
+  else if (c == ']') redo();
+  else if (c == 'n') next_win();
 }
 
-void
-mainloop(){
-  while(is_running){
+void mainloop(void) {
+  while (is_running) {
     char c;
     c = (char)getch();
     sprintf(statusline, "key '%i'", (int)c);
@@ -896,8 +802,8 @@ mainloop(){
   and a screen repaint you code  yourself.
   The refresh will pick up the new screen
   size from the xterm's environment. */
-void
-handle_resize(){
+/* handle is expected to get int arg, so (void) is inacceptable */
+void handle_resize() {
   endwin();
   refresh();
   getmaxyx(stdscr, screen_size.y, screen_size.x);
@@ -905,8 +811,7 @@ handle_resize(){
   draw();
 }
 
-void
-init(){
+void init(void) {
   signal(SIGWINCH, handle_resize);
   setlocale(LC_ALL,"");
   initscr();
@@ -916,32 +821,27 @@ init(){
   TABSIZE = 4;
 }
 
-void
-create_empty_buffer(){
-  newstr("");
-}
+void create_empty_buffer(void) { newstr(""); }
 
-void
-create_win(char *filename){
+void create_win(char *filename) {
   Win *w = calloc(1, sizeof(Win));
   add_node_to_tail(&windows, w);
   win = w;
-  if(filename){
+  if (filename) {
     bool opened = readfile(&w->lines, filename);
-    if(!opened)
+    if (!opened)
       die("create_win(): no such file '%s'\n", filename);
     w->filename = my_strdup(filename);
-  }else
+  } else
     create_empty_buffer();
   w->prevlines = clone_buffer(w->lines);
 }
 
-void
-read_from_stdin(){
+void read_from_stdin(void) {
   int fd;
   char s[300];
   create_win(NULL);
-  while(!feof(stdin)){
+  while (!feof(stdin)) {
     fgets(s, 300, stdin);
     add_node_to_tail(&win->lines, my_strdup(s));
   }
@@ -951,27 +851,23 @@ read_from_stdin(){
   win->prevlines = clone_buffer(win->lines);
 }
 
-void
-arg_proc_option(char *c){
+void arg_proc_option(char *c) {
   if(strcmp(c, "-") == 0)
     read_from_stdin();
 }
 
-void
-arg_proc(int ac, char **av){
+void arg_proc(int ac, char **av) {
   int i;
-  for(i = 1; i < ac; i++){
+  for(i = 1; i < ac; i++)
     if(av[i][0] != '-')
       create_win(av[i]);
     else
       arg_proc_option(av[i]);
-  }
   if(windows.size == 0)
     create_win(NULL);
 }
 
-int
-main(int ac, char **av){
+int main(int ac, char **av) {
   arg_proc(ac, av);
   init();
   draw();
